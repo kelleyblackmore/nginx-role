@@ -1,0 +1,9 @@
+---
+# RHEL/CentOS/Fedora-specific variables
+nginx_user: "nginx"
+nginx_group: "nginx"
+
+nginx_prerequisites:
+  - ca-certificates
+  - curl
+  - gnupg2

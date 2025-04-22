@@ -1,0 +1,217 @@
+---
+- name: Include OS-specific variables
+  include_vars: "{{ item }}"
+  with_first_found:
+    - files:
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version }}.yml"
+        - "{{ ansible_distribution | lower }}.yml"
+        - "{{ ansible_os_family | lower }}.yml"
+      paths:
+        - "{{ role_path }}/vars"
+  tags:
+    - always
+
+- name: Check if Nginx is installed
+  command: which nginx
+  register: nginx_installed
+  changed_when: false
+  failed_when: false
+  check_mode: false
+  tags:
+    - nginx
+    - nginx_upgrade
+
+- name: Fail if Nginx is not installed
+  fail:
+    msg: "Nginx is not installed. Please install it first using the lsanix.nginx.install role."
+  when: nginx_installed.rc != 0
+  tags:
+    - nginx
+    - nginx_upgrade
+
+- name: Get current Nginx version
+  command: nginx -v
+  register: current_nginx_version
+  changed_when: false
+  check_mode: false
+  tags:
+    - nginx
+    - nginx_upgrade
+
+- name: Display current Nginx version
+  debug:
+    msg: "Current Nginx version: {{ current_nginx_version.stderr | regex_search('nginx version: nginx/(.*)', '\\1') | first }}"
+  tags:
+    - nginx
+    - nginx_upgrade
+
+# Create backup directory if needed
+- name: Create backup directory
+  file:
+    path: "{{ nginx_upgrade_backup_path }}"
+    state: directory
+    mode: 0755
+  when: nginx_upgrade_backup
+  become: true
+  tags:
+    - nginx
+    - nginx_upgrade
+    - nginx_backup
+
+# Back up Nginx configuration
+- name: Backup Nginx configuration
+  block:
+    - name: Create timestamped backup of Nginx configuration
+      archive:
+        path:
+          - "/etc/nginx"
+          - "/usr/share/nginx"
+        dest: "{{ nginx_upgrade_backup_path }}/nginx_config_backup_{{ ansible_date_time.date }}.tar.gz"
+        format: gz
+      register: nginx_backup
+      become: true
+
+    - name: Maintain limited number of backups
+      shell: "ls -t {{ nginx_upgrade_backup_path }}/nginx_config_backup_*.tar.gz | tail -n +{{ nginx_upgrade_max_backups + 1 }} | xargs rm -f"
+      args:
+        executable: /bin/bash
+      changed_when: true
+      become: true
+      when: nginx_upgrade_max_backups > 0
+  when: nginx_upgrade_backup
+  tags:
+    - nginx
+    - nginx_upgrade
+    - nginx_backup
+
+# Update Nginx repository to latest version
+# Debian/Ubuntu specific tasks
+- name: Update Nginx APT repository
+  apt_repository:
+    repo: "deb https://nginx.org/packages/{% if nginx_upgrade_version == 'mainline' %}mainline/{% endif %}{{ ansible_distribution|lower }}/ {{ ansible_distribution_release }} nginx"
+    state: present
+    filename: nginx
+  when: ansible_os_family == "Debian"
+  become: true
+  tags:
+    - nginx
+    - nginx_upgrade
+
+# RHEL/CentOS/Fedora specific tasks
+- name: Update Nginx YUM repository
+  yum_repository:
+    name: nginx
+    description: Nginx Repository
+    baseurl: "https://nginx.org/packages/{% if nginx_upgrade_version == 'mainline' %}mainline/{% endif %}{{ ansible_distribution|lower }}/{{ ansible_distribution_major_version }}/$basearch/"
+    gpgcheck: yes
+    gpgkey: https://nginx.org/keys/nginx_signing.key
+    enabled: yes
+  when: ansible_os_family == "RedHat"
+  become: true
+  tags:
+    - nginx
+    - nginx_upgrade
+
+# Validate current configuration before upgrade
+- name: Validate current Nginx configuration
+  command: nginx -t
+  register: pre_upgrade_validation
+  changed_when: false
+  check_mode: false
+  failed_when: pre_upgrade_validation.rc != 0
+  become: true
+  when: nginx_upgrade_validate_config
+  tags:
+    - nginx
+    - nginx_upgrade
+    - nginx_validate
+
+# Perform the upgrade
+- name: Upgrade Nginx package
+  package:
+    name: nginx
+    state: "{{ nginx_upgrade_package_state }}"
+  become: true
+  register: nginx_upgrade_result
+  tags:
+    - nginx
+    - nginx_upgrade
+
+# Validate the new configuration after upgrade
+- name: Validate new Nginx configuration
+  command: nginx -t
+  register: post_upgrade_validation
+  changed_when: false
+  check_mode: false
+  failed_when: post_upgrade_validation.rc != 0
+  notify: 
+    - "validate nginx configuration"
+    - "rollback nginx"
+  become: true
+  when: nginx_upgrade_validate_config and nginx_upgrade_result.changed
+  tags:
+    - nginx
+    - nginx_upgrade
+    - nginx_validate
+
+# Restart or reload Nginx after upgrade
+- name: Restart Nginx after upgrade
+  service:
+    name: nginx
+    state: restarted
+  become: true
+  when: nginx_upgrade_restart and nginx_upgrade_result.changed and post_upgrade_validation.rc == 0
+  tags:
+    - nginx
+    - nginx_upgrade
+    - nginx_service
+
+# Verify the upgrade was successful
+- name: Get new Nginx version
+  command: nginx -v
+  register: new_nginx_version
+  changed_when: false
+  check_mode: false
+  become: true
+  tags:
+    - nginx
+    - nginx_upgrade
+    - nginx_verify
+
+- name: Display new Nginx version
+  debug:
+    msg: "New Nginx version: {{ new_nginx_version.stderr | regex_search('nginx version: nginx/(.*)', '\\1') | first }}"
+  tags:
+    - nginx
+    - nginx_upgrade
+    - nginx_verify
+
+- name: Check if Nginx is running
+  command: service nginx status
+  register: nginx_status
+  changed_when: false
+  check_mode: false
+  failed_when: false
+  become: true
+  tags:
+    - nginx
+    - nginx_upgrade
+    - nginx_verify
+
+- name: Verify Nginx is running
+  debug:
+    msg: "Nginx upgrade completed successfully and service is running"
+  when: nginx_status.rc == 0
+  tags:
+    - nginx
+    - nginx_upgrade
+    - nginx_verify
+
+- name: Alert if Nginx service is not running
+  debug:
+    msg: "Warning: Nginx service is not running after upgrade. Please check the logs for issues."
+  when: nginx_status.rc != 0
+  tags:
+    - nginx
+    - nginx_upgrade
+    - nginx_verify

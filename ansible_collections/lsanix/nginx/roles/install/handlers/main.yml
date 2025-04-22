@@ -1,0 +1,21 @@
+---
+- name: restart nginx
+  service:
+    name: nginx
+    state: restarted
+  listen: "restart nginx"
+
+- name: reload nginx
+  service:
+    name: nginx
+    state: reloaded
+  listen: "reload nginx"
+
+- name: validate nginx configuration
+  command: nginx -t
+  register: nginx_validate
+  changed_when: false
+  check_mode: false
+  listen: "validate nginx configuration"
+  notify: "reload nginx"
+  failed_when: nginx_validate.rc != 0

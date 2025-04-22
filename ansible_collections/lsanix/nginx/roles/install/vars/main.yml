@@ -1,0 +1,6 @@
+---
+# Common prerequisites for all distributions
+nginx_prerequisites:
+  - ca-certificates
+  - curl
+  - gnupg

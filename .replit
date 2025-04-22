@@ -1,0 +1,52 @@
+modules = ["python-3.11"]
+
+[nix]
+channel = "stable-24_05"
+packages = ["salt"]
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Ansible Collection Runner"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "ansible-verify"
+
+[[workflows.workflow]]
+name = "Ansible Collection Runner"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "ansible-galaxy collection build ansible_collections/lsanix/nginx --force"
+
+[[workflows.workflow]]
+name = "ansible-verify"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "ansible-galaxy collection list && ls -la ansible_collections/lsanix/nginx && echo \"Roles:\" && ls -la ansible_collections/lsanix/nginx/roles && echo \"Playbooks:\" && ls -la ansible_collections/lsanix/nginx/playbooks"
+
+[deployment]
+run = ["sh", "-c", "ansible-galaxy collection build ansible_collections/lsanix/nginx --force"]

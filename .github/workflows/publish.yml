@@ -1,0 +1,62 @@
+---
+name: Publish Collection to Artifactory
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build_and_publish:
+    name: Build and publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Ansible
+        run: |
+          python -m pip install --upgrade pip
+          pip install ansible-core
+
+      - name: Build the collection
+        run: |
+          cd ansible_collections/lsanix/nginx
+          ansible-galaxy collection build --force
+          echo "COLLECTION_ARTIFACT=$(ls lsanix-nginx-*.tar.gz)" >> $GITHUB_ENV
+
+      - name: Set version
+        run: |
+          echo "COLLECTION_VERSION=$(echo ${{ github.event.release.tag_name }} | sed 's/v//')" >> $GITHUB_ENV
+
+      - name: Upload to GitHub Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ansible_collections/lsanix/nginx/${{ env.COLLECTION_ARTIFACT }}
+          asset_name: ${{ env.COLLECTION_ARTIFACT }}
+          asset_content_type: application/gzip
+
+      - name: Upload to Artifactory
+        uses: jfrog/setup-jfrog-cli@v3
+        env:
+          JF_ARTIFACTORY_1: ${{ secrets.JF_ARTIFACTORY_SECRET }}
+          
+      - name: Configure JFrog CLI
+        run: |
+          jf rt config --url ${{ secrets.ARTIFACTORY_URL }} --user ${{ secrets.ARTIFACTORY_USERNAME }} --access-token ${{ secrets.ARTIFACTORY_TOKEN }}
+          
+      - name: Upload Collection to Artifactory
+        run: |
+          jf rt u ansible_collections/lsanix/nginx/${{ env.COLLECTION_ARTIFACT }} ansible-collections/lsanix/nginx/${{ env.COLLECTION_VERSION }}/ --recursive=false
+          
+      - name: Publish results
+        run: |
+          echo "Published lsanix.nginx version ${{ env.COLLECTION_VERSION }} to Artifactory"
+          echo "Artifact URL: ${{ secrets.ARTIFACTORY_URL }}/ansible-collections/lsanix/nginx/${{ env.COLLECTION_VERSION }}/${{ env.COLLECTION_ARTIFACT }}"

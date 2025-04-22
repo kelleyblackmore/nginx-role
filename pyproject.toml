@@ -1,0 +1,14 @@
+[project]
+name = "repl-nix-workspace"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.11"
+dependencies = [
+    "ansible>=11.4.0",
+    "ansible-lint>=25.2.1",
+    "molecule>=25.4.0",
+    "molecule-docker>=2.1.0",
+    "pytest>=8.3.5",
+    "pytest-testinfra>=10.2.2",
+    "yamllint>=1.37.0",
+]

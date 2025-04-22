@@ -1,0 +1,54 @@
+---
+- name: restart nginx
+  service:
+    name: nginx
+    state: restarted
+  listen: "restart nginx"
+
+- name: reload nginx
+  service:
+    name: nginx
+    state: reloaded
+  listen: "reload nginx"
+
+- name: validate nginx configuration
+  command: nginx -t
+  register: nginx_validate
+  changed_when: false
+  check_mode: false
+  listen: "validate nginx configuration"
+  notify: "reload nginx"
+  failed_when: nginx_validate.rc != 0
+
+- name: rollback nginx
+  block:
+    - name: Restore backed up configuration
+      copy:
+        src: "{{ nginx_upgrade_backup_path }}/nginx_config_backup_{{ ansible_date_time.date }}.tar.gz"
+        dest: "/tmp/nginx_rollback.tar.gz"
+        remote_src: yes
+      when: nginx_upgrade_backup and nginx_upgrade_enable_rollback
+  
+    - name: Extract backup
+      unarchive:
+        src: "/tmp/nginx_rollback.tar.gz"
+        dest: "/"
+        remote_src: yes
+      when: nginx_upgrade_backup and nginx_upgrade_enable_rollback
+  
+    - name: Reinstall previous version
+      package:
+        name: nginx
+        state: present
+      when: nginx_upgrade_enable_rollback
+  
+    - name: Restart Nginx after rollback
+      service:
+        name: nginx
+        state: restarted
+      when: nginx_upgrade_enable_rollback
+  
+    - name: Notify about rollback
+      debug:
+        msg: "Rolled back Nginx upgrade due to validation failure"
+  listen: "rollback nginx"

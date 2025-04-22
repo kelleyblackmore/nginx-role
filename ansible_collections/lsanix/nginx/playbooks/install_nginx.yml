@@ -1,0 +1,28 @@
+---
+- name: Install Nginx
+  hosts: all
+  become: true
+  collections:
+    - lsanix.nginx
+  
+  vars:
+    nginx_version: "stable"
+    nginx_http_port: 80
+    nginx_ssl_enabled: false
+
+  roles:
+    - role: lsanix.nginx.install
+
+  post_tasks:
+    - name: Verify Nginx installation
+      uri:
+        url: "http://localhost:{{ nginx_http_port }}"
+        return_content: yes
+      register: nginx_response
+      changed_when: false
+      check_mode: false
+      failed_when: nginx_response.status != 200
+      
+    - name: Display Nginx version
+      debug:
+        msg: "Nginx has been successfully installed and is accessible on port {{ nginx_http_port }}"

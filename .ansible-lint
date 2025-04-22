@@ -1,0 +1,19 @@
+---
+exclude_paths:
+  - .github/
+  - .cache/
+  - molecule/
+  - tests/
+
+skip_list:
+  - name[casing]
+  - yaml[line-length]
+  - command-instead-of-module  # We need command for some operations like checking versions
+  - no-changed-when  # We're handling changed_when in our tasks
+  - unnamed-task  # Some simple tasks don't need names
+
+warn_list:
+  - deprecated-command-syntax
+  - experimental
+  - no-handler
+  - yaml[indentation]

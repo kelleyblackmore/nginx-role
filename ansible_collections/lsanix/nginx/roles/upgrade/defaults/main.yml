@@ -1,0 +1,34 @@
+---
+# Version to upgrade to - can be "latest", "stable", "mainline" or a specific version number
+nginx_upgrade_version: "latest"
+
+# Whether to perform a backup before upgrading
+nginx_upgrade_backup: true
+
+# Backup location
+nginx_upgrade_backup_path: "/var/backups/nginx"
+
+# Maximum number of backups to keep
+nginx_upgrade_max_backups: 5
+
+# Validate the configuration before applying changes
+nginx_upgrade_validate_config: true
+
+# Whether to restart Nginx after upgrade
+nginx_upgrade_restart: true
+
+# Downtime settings
+nginx_upgrade_allow_downtime: false
+nginx_upgrade_max_downtime: 300  # seconds
+
+# Rollback settings
+nginx_upgrade_enable_rollback: true
+
+# Package management settings
+nginx_upgrade_package_state: latest
+
+# Configuration paths (same as install role for consistency)
+nginx_conf_path: "/etc/nginx/nginx.conf"
+nginx_conf_dir: "/etc/nginx/conf.d"
+nginx_vhost_dir: "/etc/nginx/sites-available"
+nginx_vhost_enabled_dir: "/etc/nginx/sites-enabled"

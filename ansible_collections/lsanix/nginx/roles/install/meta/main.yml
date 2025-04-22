@@ -1,0 +1,38 @@
+---
+galaxy_info:
+  role_name: install
+  author: LSANix Team
+  description: Installs and configures Nginx on various Linux distributions
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+    - name: EL  # Enterprise Linux
+      versions:
+        - 7
+        - 8
+        - 9
+    - name: Fedora
+      versions:
+        - all
+    - name: Debian
+      versions:
+        - buster     # 10
+        - bullseye   # 11
+        - bookworm   # 12
+    - name: Ubuntu
+      versions:
+        - bionic    # 18.04
+        - focal     # 20.04
+        - jammy     # 22.04
+    - name: Amazon
+      versions:
+        - 2
+        - 2023
+  galaxy_tags:
+    - nginx
+    - web
+    - server
+    - webserver
+    - ssl
+
+dependencies: []

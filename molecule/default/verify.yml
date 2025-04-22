@@ -1,0 +1,39 @@
+---
+- name: Verify
+  hosts: all
+  become: true
+  tasks:
+    - name: Check if Nginx is installed
+      command: which nginx
+      register: nginx_installed
+      changed_when: false
+      failed_when: nginx_installed.rc != 0
+      
+    - name: Get Nginx version
+      command: nginx -v
+      register: nginx_version
+      changed_when: false
+      
+    - name: Check Nginx process
+      command: pgrep -f nginx
+      register: nginx_process
+      changed_when: false
+      failed_when: nginx_process.rc != 0
+      
+    - name: Check if Nginx is listening on port 80
+      wait_for:
+        port: 80
+        timeout: 5
+        
+    - name: Test Nginx HTTP response
+      uri:
+        url: http://localhost:80
+        return_content: yes
+      register: nginx_response
+      failed_when: nginx_response.status != 200
+      
+    - name: Verify Nginx configuration is valid
+      command: nginx -t
+      register: nginx_config_valid
+      changed_when: false
+      failed_when: nginx_config_valid.rc != 0

@@ -1,0 +1,166 @@
+---
+- name: Include OS-specific variables
+  include_vars: "{{ item }}"
+  with_first_found:
+    - files:
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version }}.yml"
+        - "{{ ansible_distribution | lower }}.yml"
+        - "{{ ansible_os_family | lower }}.yml"
+      paths:
+        - "{{ role_path }}/vars"
+  tags:
+    - always
+
+- name: Install prerequisite packages
+  package:
+    name: "{{ nginx_prerequisites }}"
+    state: present
+  become: true
+  tags:
+    - nginx
+    - nginx_install
+
+# Debian/Ubuntu specific tasks
+- name: Add Nginx APT key
+  apt_key:
+    url: https://nginx.org/keys/nginx_signing.key
+    state: present
+  when: ansible_os_family == "Debian"
+  become: true
+  tags:
+    - nginx
+    - nginx_install
+
+- name: Add Nginx APT repository
+  apt_repository:
+    repo: "deb {{ nginx_apt_repo_url }} {{ ansible_distribution_release }} nginx"
+    state: present
+    filename: nginx
+  when: ansible_os_family == "Debian"
+  become: true
+  tags:
+    - nginx
+    - nginx_install
+
+# RHEL/CentOS/Fedora specific tasks
+- name: Add Nginx YUM repository
+  yum_repository:
+    name: nginx
+    description: Nginx Repository
+    baseurl: "{{ nginx_yum_repo_url }}"
+    gpgcheck: yes
+    gpgkey: https://nginx.org/keys/nginx_signing.key
+    enabled: yes
+  when: ansible_os_family == "RedHat"
+  become: true
+  tags:
+    - nginx
+    - nginx_install
+
+# Install Nginx
+- name: Install Nginx package
+  package:
+    name: nginx
+    state: "{{ nginx_package_state }}"
+  become: true
+  tags:
+    - nginx
+    - nginx_install
+
+# Create necessary directories
+- name: Create necessary directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_group }}"
+    mode: 0755
+  with_items:
+    - "{{ nginx_conf_dir }}"
+    - "{{ nginx_log_dir }}"
+  become: true
+  tags:
+    - nginx
+    - nginx_configuration
+
+- name: Create virtual hosts directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_group }}"
+    mode: 0755
+  with_items:
+    - "{{ nginx_vhost_dir }}"
+    - "{{ nginx_vhost_enabled_dir }}"
+  when: nginx_create_vhost_dirs
+  become: true
+  tags:
+    - nginx
+    - nginx_configuration
+
+# Configure Nginx
+- name: Generate Nginx configuration
+  template:
+    src: nginx.conf.j2
+    dest: "{{ nginx_conf_path }}"
+    owner: root
+    group: root
+    mode: 0644
+    validate: nginx -t -c %s
+  become: true
+  notify: reload nginx
+  tags:
+    - nginx
+    - nginx_configuration
+
+- name: Remove default site configuration if it exists
+  file:
+    path: "{{ nginx_default_site_path }}"
+    state: absent
+  become: true
+  tags:
+    - nginx
+    - nginx_configuration
+
+# Enable and start Nginx service
+- name: Ensure Nginx service is enabled and started
+  service:
+    name: nginx
+    state: "{{ nginx_service_state }}"
+    enabled: "{{ nginx_service_enabled }}"
+  become: true
+  tags:
+    - nginx
+    - nginx_service
+
+# Verify installation
+- name: Check if Nginx is accessible
+  uri:
+    url: "http://localhost:{{ nginx_http_port }}"
+    return_content: yes
+  register: nginx_response
+  changed_when: false
+  check_mode: false
+  ignore_errors: true
+  tags:
+    - nginx
+    - nginx_verify
+
+- name: Display Nginx version
+  command: nginx -v
+  register: nginx_version_output
+  changed_when: false
+  check_mode: false
+  tags:
+    - nginx
+    - nginx_verify
+
+- name: Show Nginx version and status
+  debug:
+    msg: 
+      - "Nginx version: {{ nginx_version_output.stderr | regex_search('nginx version: nginx/(.*)', '\\1') | first }}"
+      - "HTTP Response: {{ nginx_response.status | default('Connection Failed') }}"
+  tags:
+    - nginx
+    - nginx_verify

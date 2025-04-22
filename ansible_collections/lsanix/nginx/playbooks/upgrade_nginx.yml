@@ -1,0 +1,48 @@
+---
+- name: Upgrade Nginx
+  hosts: all
+  become: true
+  collections:
+    - lsanix.nginx
+  
+  vars:
+    nginx_upgrade_version: "latest"
+    nginx_upgrade_backup: true
+    nginx_upgrade_validate_config: true
+    
+  pre_tasks:
+    - name: Check if Nginx is installed
+      command: which nginx
+      register: nginx_installed
+      changed_when: false
+      failed_when: false
+      check_mode: false
+      
+    - name: Get current Nginx version before upgrade
+      command: nginx -v
+      register: current_nginx_version
+      changed_when: false
+      check_mode: false
+      when: nginx_installed.rc == 0
+      
+    - name: Display current Nginx version
+      debug:
+        msg: "Current Nginx version: {{ current_nginx_version.stderr | regex_search('nginx version: nginx/(.*)', '\\1') | first }}"
+      when: nginx_installed.rc == 0
+
+  roles:
+    - role: lsanix.nginx.upgrade
+
+  post_tasks:
+    - name: Get new Nginx version after upgrade
+      command: nginx -v
+      register: new_nginx_version
+      changed_when: false
+      check_mode: false
+      
+    - name: Display upgrade results
+      debug:
+        msg: 
+          - "Previous Nginx version: {{ current_nginx_version.stderr | regex_search('nginx version: nginx/(.*)', '\\1') | first }}"
+          - "New Nginx version: {{ new_nginx_version.stderr | regex_search('nginx version: nginx/(.*)', '\\1') | first }}"
+      when: nginx_installed.rc == 0
