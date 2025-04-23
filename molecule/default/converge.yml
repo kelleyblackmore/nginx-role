@@ -3,9 +3,9 @@
   hosts: all
   become: true
   tasks:
-    - name: Include lsanix.nginx.install role
+    - name: Include kelleyblackmore.nginx.install role
       include_role:
-        name: lsanix.nginx.install
+        name: kelleyblackmore.nginx.install
       vars:
         nginx_version: "stable"
         nginx_http_port: 80
@@ -19,9 +19,9 @@
       retries: 5
       delay: 1
       
-    - name: Include lsanix.nginx.upgrade role
+    - name: Include kelleyblackmore.nginx.upgrade role
       include_role:
-        name: lsanix.nginx.upgrade
+        name: kelleyblackmore.nginx.upgrade
       vars:
         nginx_upgrade_version: "latest"
         nginx_upgrade_backup: true

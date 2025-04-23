@@ -32,7 +32,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "ansible-galaxy collection build ansible_collections/lsanix/nginx --force"
+args = "ansible-galaxy collection build ansible_collections/kelleyblackmore/nginx --force"
 
 [[workflows.workflow]]
 name = "ansible-verify"
@@ -46,7 +46,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "ansible-galaxy collection list && ls -la ansible_collections/lsanix/nginx && echo \"Roles:\" && ls -la ansible_collections/lsanix/nginx/roles && echo \"Playbooks:\" && ls -la ansible_collections/lsanix/nginx/playbooks"
+args = "ansible-galaxy collection list && ls -la ansible_collections/kelleyblackmore/nginx && echo \"Roles:\" && ls -la ansible_collections/kelleyblackmore/nginx/roles && echo \"Playbooks:\" && ls -la ansible_collections/kelleyblackmore/nginx/playbooks"
 
 [deployment]
-run = ["sh", "-c", "ansible-galaxy collection build ansible_collections/lsanix/nginx --force"]
+run = ["sh", "-c", "ansible-galaxy collection build ansible_collections/kelleyblackmore/nginx --force"]

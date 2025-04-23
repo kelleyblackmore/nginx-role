@@ -23,7 +23,7 @@
 
 - name: Fail if Nginx is not installed
   fail:
-    msg: "Nginx is not installed. Please install it first using the lsanix.nginx.install role."
+    msg: "Nginx is not installed. Please install it first using the kelleyblackmore.nginx.install role."
   when: nginx_installed.rc != 0
   tags:
     - nginx

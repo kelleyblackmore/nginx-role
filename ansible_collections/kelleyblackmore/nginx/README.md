@@ -1,7 +1,7 @@
-# Ansible Collection - lsanix.nginx
+# Ansible Collection - kelleyblackmore.nginx
 
-[![Ansible Galaxy](https://img.shields.io/badge/galaxy-lsanix.nginx-blue.svg)](https://galaxy.ansible.com/lsanix/nginx)
-[![CI](https://github.com/lsanix/nginx/actions/workflows/ansible-test.yml/badge.svg)](https://github.com/lsanix/nginx/actions/workflows/ansible-test.yml)
+[![Ansible Galaxy](https://img.shields.io/badge/galaxy-kelleyblackmore.nginx-blue.svg)](https://galaxy.ansible.com/kelleyblackmore/nginx)
+[![CI](https://github.com/kelleyblackmore/nginx/actions/workflows/ansible-test.yml/badge.svg)](https://github.com/kelleyblackmore/nginx/actions/workflows/ansible-test.yml)
 
 This Ansible collection provides roles for managing Nginx installations across different Linux distributions. It allows for consistent installation and upgrading of Nginx servers in your infrastructure.
 
@@ -9,8 +9,8 @@ This Ansible collection provides roles for managing Nginx installations across d
 
 ### Roles
 
-- `lsanix.nginx.install` - Installs and configures Nginx
-- `lsanix.nginx.upgrade` - Safely upgrades an existing Nginx installation
+- `kelleyblackmore.nginx.install` - Installs and configures Nginx
+- `kelleyblackmore.nginx.upgrade` - Safely upgrades an existing Nginx installation
 
 ### Playbooks
 
@@ -33,4 +33,4 @@ This Ansible collection provides roles for managing Nginx installations across d
 ### Using ansible-galaxy (recommended)
 
 ```bash
-ansible-galaxy collection install lsanix.nginx
+ansible-galaxy collection install kelleyblackmore.nginx

@@ -3,7 +3,7 @@
   hosts: all
   become: true
   collections:
-    - lsanix.nginx
+    - kelleyblackmore.nginx
   
   vars:
     nginx_version: "stable"
@@ -11,7 +11,7 @@
     nginx_ssl_enabled: false
 
   roles:
-    - role: lsanix.nginx.install
+    - role: kelleyblackmore.nginx.install
 
   post_tasks:
     - name: Verify Nginx installation

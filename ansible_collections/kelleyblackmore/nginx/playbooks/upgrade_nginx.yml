@@ -3,7 +3,7 @@
   hosts: all
   become: true
   collections:
-    - lsanix.nginx
+    - kelleyblackmore.nginx
   
   vars:
     nginx_upgrade_version: "latest"
@@ -31,7 +31,7 @@
       when: nginx_installed.rc == 0
 
   roles:
-    - role: lsanix.nginx.upgrade
+    - role: kelleyblackmore.nginx.upgrade
 
   post_tasks:
     - name: Get new Nginx version after upgrade

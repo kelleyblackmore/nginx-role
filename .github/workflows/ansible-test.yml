@@ -28,10 +28,10 @@ jobs:
           pip install ansible ansible-lint yamllint
 
       - name: Run ansible-lint
-        run: ansible-lint --project-dir ansible_collections/lsanix/nginx
+        run: ansible-lint --project-dir ansible_collections/kelleyblackmore/nginx
 
       - name: Run yamllint
-        run: yamllint ansible_collections/lsanix/nginx
+        run: yamllint ansible_collections/kelleyblackmore/nginx
 
   molecule:
     name: Molecule
@@ -62,7 +62,7 @@ jobs:
           pip install ansible molecule molecule-docker docker pytest pytest-testinfra
 
       - name: Run Molecule tests
-        run: cd ansible_collections/lsanix/nginx && molecule test
+        run: cd ansible_collections/kelleyblackmore/nginx && molecule test
         env:
           PY_COLORS: '1'
           ANSIBLE_FORCE_COLOR: '1'
@@ -87,5 +87,5 @@ jobs:
 
       - name: Run ansible-test sanity
         run: |
-          cd ansible_collections/lsanix/nginx
+          cd ansible_collections/kelleyblackmore/nginx
           ansible-test sanity --docker -v

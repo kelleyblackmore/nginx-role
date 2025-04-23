@@ -25,9 +25,9 @@ jobs:
 
       - name: Build the collection
         run: |
-          cd ansible_collections/lsanix/nginx
+          cd ansible_collections/kelleyblackmore/nginx
           ansible-galaxy collection build --force
-          echo "COLLECTION_ARTIFACT=$(ls lsanix-nginx-*.tar.gz)" >> $GITHUB_ENV
+          echo "COLLECTION_ARTIFACT=$(ls kelleyblackmore-nginx-*.tar.gz)" >> $GITHUB_ENV
 
       - name: Set version
         run: |
@@ -39,7 +39,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ansible_collections/lsanix/nginx/${{ env.COLLECTION_ARTIFACT }}
+          asset_path: ansible_collections/kelleyblackmore/nginx/${{ env.COLLECTION_ARTIFACT }}
           asset_name: ${{ env.COLLECTION_ARTIFACT }}
           asset_content_type: application/gzip
 
@@ -54,9 +54,9 @@ jobs:
           
       - name: Upload Collection to Artifactory
         run: |
-          jf rt u ansible_collections/lsanix/nginx/${{ env.COLLECTION_ARTIFACT }} ansible-collections/lsanix/nginx/${{ env.COLLECTION_VERSION }}/ --recursive=false
+          jf rt u ansible_collections/kelleyblackmore/nginx/${{ env.COLLECTION_ARTIFACT }} ansible-collections/kelleyblackmore/nginx/${{ env.COLLECTION_VERSION }}/ --recursive=false
           
       - name: Publish results
         run: |
-          echo "Published lsanix.nginx version ${{ env.COLLECTION_VERSION }} to Artifactory"
-          echo "Artifact URL: ${{ secrets.ARTIFACTORY_URL }}/ansible-collections/lsanix/nginx/${{ env.COLLECTION_VERSION }}/${{ env.COLLECTION_ARTIFACT }}"
+          echo "Published kelleyblackmore.nginx version ${{ env.COLLECTION_VERSION }} to Artifactory"
+          echo "Artifact URL: ${{ secrets.ARTIFACTORY_URL }}/ansible-collections/kelleyblackmore/nginx/${{ env.COLLECTION_VERSION }}/${{ env.COLLECTION_ARTIFACT }}"

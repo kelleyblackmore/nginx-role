@@ -1,0 +1,58 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Ansible specific
+*.retry
+*.tar.gz
+*.log
+
+# Ansible collection build artifacts
+*-*.tar.gz
+
+# Virtual environments
+venv/
+env/
+.env/
+
+# Editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Testing artifacts
+.pytest_cache/
+.coverage
+coverage.xml
+.tox/
+.cache/
+
+# Molecule
+.molecule/
+molecule/*/artifacts/
+
+# Docker
+*.log
+docker-compose.override.yml
+
+# Ansible roles downloaded from Galaxy
+roles/external/
+
+# Symlinks created during testing or development
+collections/
+
+# Vagrant
+.vagrant/
+*.box
